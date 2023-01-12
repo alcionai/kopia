@@ -22,6 +22,11 @@ type Options struct {
 	SecretAccessKey string `json:"secretAccessKey" kopia:"sensitive"`
 	SessionToken    string `json:"sessionToken" kopia:"sensitive"`
 
+	// Options to specify if a role is to be assumed
+	RoleARN     string            `json:"role"`
+	Tags        map[string]string `json:"tags" kopia:"sensitive"`
+	SessionName string            `json:"sessionName"`
+
 	// Region is an optional region to pass in authorization header.
 	Region string `json:"region,omitempty"`
 
