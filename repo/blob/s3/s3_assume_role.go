@@ -9,21 +9,23 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/pkg/errors"
 )
 
 // minioProvider is a shim that implements the Minio `Provider` interface
-// for an AWS credential
+// for an AWS credential.
 type minioProvider struct {
 	creds *awscreds.Credentials
 }
 
-func assumeRoleCredentials(roleARN string, roleSessionName string, tags map[string]string) (credentials.Provider, error) {
+func assumeRoleCredentials(roleARN, roleSessionName string, tags map[string]string) (credentials.Provider, error) {
 	sess, err := session.NewSession()
 	if err != nil {
-		return &minioProvider{}, err
+		return &minioProvider{}, errors.Wrap(err, "NewSession")
 	}
 
 	stsTags := make([]*sts.Tag, 0, len(tags))
+
 	for k, v := range tags {
 		tag := sts.Tag{Key: aws.String(k), Value: aws.String(v)}
 		stsTags = append(stsTags, &tag)
@@ -37,6 +39,7 @@ func assumeRoleCredentials(roleARN string, roleSessionName string, tags map[stri
 			p.RoleSessionName = roleSessionName
 			p.Duration = 1 * time.Hour
 		})
+
 	return &minioProvider{creds: creds}, nil
 }
 
@@ -47,7 +50,7 @@ func (mp *minioProvider) Retrieve() (credentials.Value, error) {
 
 	v, err := mp.creds.Get()
 	if err != nil {
-		return credentials.Value{}, err
+		return credentials.Value{}, errors.Wrap(err, "creds.Get")
 	}
 
 	return credentials.Value{
