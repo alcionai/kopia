@@ -379,6 +379,7 @@ func newStorage(ctx context.Context, opt *Options) (*s3Storage, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		creds = credentials.New(assumeRoleCreds)
 	}
 
