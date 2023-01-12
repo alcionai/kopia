@@ -19,9 +19,12 @@ type Options struct {
 	DoNotVerifyTLS bool   `json:"doNotVerifyTLS,omitempty"`
 	RootCA         []byte `json:"rootCA,omitempty"`
 
-	AccessKeyID     string `json:"accessKeyID"`
-	SecretAccessKey string `json:"secretAccessKey" kopia:"sensitive"`
-	SessionToken    string `json:"sessionToken"    kopia:"sensitive"`
+	AccessKeyID     string            `json:"accessKeyID"`
+	SecretAccessKey string            `json:"secretAccessKey" kopia:"sensitive"`
+	SessionToken    string            `json:"sessionToken" kopia:"sensitive"`
+	Tags            map[string]string `json:"tags" kopia:"sensitive"`
+	RoleARN         string            `json:"role"`
+	SessionName     string            `json:"sessionName"`
 
 	// Region is an optional region to pass in authorization header.
 	Region string `json:"region,omitempty"`
