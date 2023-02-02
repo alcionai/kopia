@@ -189,16 +189,17 @@ func (vf *virtualFile) GetReader(ctx context.Context) (io.ReadCloser, error) {
 
 // StreamingFileFromReader returns a streaming file with given name and reader.
 func StreamingFileFromReader(name string, reader io.ReadCloser) fs.StreamingFile {
-	return StreamingFileWithModTimeFromReader(name, clock.Now(), reader)
+	return StreamingFileWithModTimeFromReader(name, clock.Now(), fs.OwnerInfo{}, reader)
 }
 
 // StreamingFileWithModTimeFromReader returns a streaming file with given name, modified time, and reader.
-func StreamingFileWithModTimeFromReader(name string, t time.Time, reader io.ReadCloser) fs.StreamingFile {
+func StreamingFileWithModTimeFromReader(name string, t time.Time, o fs.OwnerInfo, reader io.ReadCloser) fs.StreamingFile {
 	return &virtualFile{
 		virtualEntry: virtualEntry{
 			name:    name,
 			mode:    defaultPermissions,
 			modTime: t,
+			owner:   o,
 		},
 		reader: reader,
 	}
