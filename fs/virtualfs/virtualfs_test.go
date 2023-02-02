@@ -79,9 +79,20 @@ func TestStreamingFileModTime(t *testing.T) {
 	data := []byte("data")
 	f1 := StreamingFileFromReader("f1", io.NopCloser(bytes.NewReader(data)))
 	mt := time.Date(2021, 1, 2, 3, 4, 5, 0, time.UTC)
-	f2 := StreamingFileWithModTimeFromReader("f2", mt, io.NopCloser(bytes.NewReader(data)))
+	f2 := StreamingFileWithModTimeFromReader("f2", mt, fs.OwnerInfo{}, io.NopCloser(bytes.NewReader(data)))
 
 	assert.True(t, f1.ModTime().After(f2.ModTime()))
+}
+
+func TestStreamingFileOwner(t *testing.T) {
+	data := []byte("data")
+	o := fs.OwnerInfo{
+		UserID:  42,
+		GroupID: 42,
+	}
+	f1 := StreamingFileWithModTimeFromReader("f2", time.Now(), o, io.NopCloser(bytes.NewReader(data)))
+
+	assert.Equal(t, o, f1.Owner())
 }
 
 func TestStreamingFileGetReader(t *testing.T) {
