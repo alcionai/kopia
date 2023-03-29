@@ -620,12 +620,18 @@ func NewSharedManager(ctx context.Context, st blob.Storage, prov format.Provider
 		return nil, errors.Wrap(err, "error setting up read manager caches")
 	}
 
+	sm.log.Infof("NewSharedManager - writing stats before calling loadPackIndexesLocked")
+	gather.DumpStats(ctx)
+
 	sm.indexesLock.Lock()
 	defer sm.indexesLock.Unlock()
 
 	if err := sm.loadPackIndexesLocked(ctx); err != nil {
 		return nil, errors.Wrap(err, "error loading indexes")
 	}
+
+	sm.log.Infof("NewSharedManager - writing stats after calling loadPackIndexesLocked")
+	gather.DumpStats(ctx)
 
 	return sm, nil
 }

@@ -136,6 +136,9 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 		manifests map[content.ID]manifest
 	)
 
+	log(ctx).Infof("loadCommittedContentsLocked - writing stats before iterating")
+	gather.DumpStats(ctx)
+
 	for {
 		manifests = map[content.ID]manifest{}
 
@@ -173,11 +176,20 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 		return errors.Wrap(err, "unable to load manifest contents")
 	}
 
+	log(ctx).Infof("loadCommittedContentsLocked - writing stats after iterating")
+	gather.DumpStats(ctx)
+
 	m.loadManifestContentsLocked(ctx, manifests)
+
+	log(ctx).Infof("loadCommittedContentsLocked - writing stats after calling loadManifestContentsLocked")
+	gather.DumpStats(ctx)
 
 	if err := m.maybeCompactLocked(ctx); err != nil {
 		return errors.Wrapf(err, "error auto-compacting contents")
 	}
+
+	log(ctx).Infof("loadCommittedContentsLocked - writing stats after calling maybeCompactLocked")
+	gather.DumpStats(ctx)
 
 	return nil
 }
