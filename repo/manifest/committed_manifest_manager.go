@@ -176,7 +176,7 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 	m.loadManifestContentsLocked(manifests)
 
 	if err := m.maybeCompactLocked(ctx); err != nil {
-		return errors.Errorf("error auto-compacting contents")
+		return errors.Wrapf(err, "error auto-compacting contents")
 	}
 
 	return nil
