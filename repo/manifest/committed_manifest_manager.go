@@ -173,7 +173,7 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 		return errors.Wrap(err, "unable to load manifest contents")
 	}
 
-	m.loadManifestContentsLocked(manifests)
+	m.loadManifestContentsLocked(ctx, manifests)
 
 	if err := m.maybeCompactLocked(ctx); err != nil {
 		return errors.Wrapf(err, "error auto-compacting contents")
@@ -183,7 +183,7 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 }
 
 // +checklocks:m.cmmu
-func (m *committedManifestManager) loadManifestContentsLocked(manifests map[content.ID]manifest) {
+func (m *committedManifestManager) loadManifestContentsLocked(ctx context.Context, manifests map[content.ID]manifest) {
 	m.committedEntries = map[ID]*manifestEntry{}
 	m.committedContentIDs = map[content.ID]bool{}
 
@@ -203,6 +203,18 @@ func (m *committedManifestManager) loadManifestContentsLocked(manifests map[cont
 			delete(m.committedEntries, k)
 		}
 	}
+
+	var totalSize int
+
+	for _, e := range m.committedEntries {
+		totalSize += len(e.Content)
+	}
+
+	log(ctx).Debugf(
+		"final set of committed manifests has %d entries and total size of %d",
+		len(m.committedEntries),
+		totalSize,
+	)
 }
 
 func (m *committedManifestManager) compact(ctx context.Context) error {
@@ -349,6 +361,12 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 	if err := json.NewDecoder(gz).Decode(&man); err != nil {
 		return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
 	}
+
+	log(ctx).Debugf(
+		"read %v bytes of gzipped manifests and found %d manifests",
+		len(blk),
+		len(man.Entries),
+	)
 
 	return man, nil
 }
