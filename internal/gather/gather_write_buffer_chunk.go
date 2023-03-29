@@ -174,3 +174,17 @@ func DumpStats(ctx context.Context) {
 	typicalContiguousAllocator.dumpStats(ctx, "typical-contig")
 	maxContiguousAllocator.dumpStats(ctx, "contig")
 }
+
+func PrintMemUsage(ctx context.Context) {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+	log(ctx).Debugw("Alloc = %v MiB", bToMb(m.Alloc))
+	log(ctx).Debugw("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+	log(ctx).Debugw("\tSys = %v MiB", bToMb(m.Sys))
+	log(ctx).Debugw("\tNumGC = %v\n", m.NumGC)
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
