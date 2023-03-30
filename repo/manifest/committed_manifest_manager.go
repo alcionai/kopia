@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime"
 	"sort"
 	"sync"
 
@@ -373,15 +374,22 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 	if err != nil {
 		return man, errors.Wrapf(err, "unable to unpack manifest data %q", contentID)
 	}
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	before := m.TotalAlloc
 
 	if err := json.NewDecoder(gz).Decode(&man); err != nil {
 		return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
 	}
 
+	runtime.ReadMemStats(&m)
+	after := m.TotalAlloc
+
 	log(ctx).Debugf(
-		"read %v bytes of gzipped manifests and found %d manifests",
+		"read %v bytes of gzipped manifests and found %d manifests. Allocated %v to decode",
 		len(blk),
 		len(man.Entries),
+		after-before,
 	)
 
 	return man, nil
