@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	manifestLoadParallelism = 8
+	manifestLoadParallelism = 1
 	manifestIDLength        = 16
 )
 

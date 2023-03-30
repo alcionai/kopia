@@ -188,9 +188,9 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 	gather.DumpStats(ctx)
 	gather.PrintMemUsage(ctx)
 
-	if err := m.maybeCompactLocked(ctx); err != nil {
-		return errors.Wrapf(err, "error auto-compacting contents")
-	}
+	// if err := m.maybeCompactLocked(ctx); err != nil {
+	// 	return errors.Wrapf(err, "error auto-compacting contents")
+	// }
 
 	log(ctx).Infof("loadCommittedContentsLocked - writing stats after calling maybeCompactLocked")
 	gather.DumpStats(ctx)
@@ -378,13 +378,15 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 	runtime.ReadMemStats(&m)
 	before := m.TotalAlloc
 
-	if err := json.NewDecoder(gz).Decode(&man); err != nil {
-		return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
-	}
+	// Not needed?
+	defer gz.Close()
+
+	man, err = decodeManifestArray(gz)
 
 	runtime.ReadMemStats(&m)
 	after := m.TotalAlloc
 
+	// TODO(ashmrtn): Remove when we don't need debugging info.
 	log(ctx).Debugf(
 		"read %v bytes of gzipped manifests and found %d manifests. Allocated %v to decode",
 		len(blk),
@@ -392,7 +394,7 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 		after-before,
 	)
 
-	return man, nil
+	return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
 }
 
 func newCommittedManager(b contentManager) *committedManifestManager {
