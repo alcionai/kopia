@@ -358,17 +358,19 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 		return man, errors.Wrapf(err, "unable to unpack manifest data %q", contentID)
 	}
 
-	if err := json.NewDecoder(gz).Decode(&man); err != nil {
-		return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
-	}
+	// Not needed?
+	defer gz.Close()
 
+	man, err = decodeManifestArray(gz)
+
+	// TODO(ashmrtn): Remove when we don't need debugging info.
 	log(ctx).Debugf(
 		"read %v bytes of gzipped manifests and found %d manifests",
 		len(blk),
 		len(man.Entries),
 	)
 
-	return man, nil
+	return man, errors.Wrapf(err, "unable to parse manifest %q", contentID)
 }
 
 func newCommittedManager(b contentManager) *committedManifestManager {
