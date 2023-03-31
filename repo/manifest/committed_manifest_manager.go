@@ -381,7 +381,7 @@ func loadManifestContent(ctx context.Context, b contentManager, contentID conten
 	// Not needed?
 	defer gz.Close()
 
-	man, err = decodeManifestArray(gz)
+	man, err = parseManifestArray(gz)
 
 	runtime.ReadMemStats(&m)
 	after := m.TotalAlloc

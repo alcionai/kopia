@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -116,6 +117,7 @@ func (m *Manager) Get(ctx context.Context, id ID, data interface{}) (*EntryMetad
 
 	if data != nil {
 		if err := json.Unmarshal([]byte(e.Content), data); err != nil {
+			fmt.Printf("Content : %s\n", string(e.Content))
 			return nil, errors.Wrapf(err, "unable to unmashal %q", id)
 		}
 	}

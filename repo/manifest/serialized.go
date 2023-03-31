@@ -2,9 +2,11 @@ package manifest
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 
+	"github.com/buger/jsonparser"
 	"github.com/pkg/errors"
 )
 
@@ -45,6 +47,84 @@ func expectDelimToken(dec *json.Decoder, expectedToken string) error {
 	}
 
 	return nil
+}
+
+func parseManifestArray(r io.Reader) (manifest, error) {
+	m := manifest{}
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return m, errors.Wrap(err, "reading manifest reader")
+	}
+
+	jsonparser.ArrayEach(data, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+
+		e, errInner := getEntry(value)
+		if errInner != nil {
+			fmt.Printf("Error decoding input2: %v\n", errInner)
+			return
+		}
+
+		m.Entries = append(m.Entries, e)
+
+	}, "entries")
+
+	return m, nil
+}
+
+func getEntry(data []byte) (*manifestEntry, error) {
+	e := &manifestEntry{}
+
+	paths := [][]string{
+		[]string{"id"},
+		[]string{"labels"},
+		[]string{"modified"},
+		[]string{"deleted"},
+		[]string{"data"},
+	}
+
+	failed := false
+
+	jsonparser.EachKey(data, func(idx int, value []byte, vt jsonparser.ValueType, err error) {
+		switch idx {
+		case 0:
+			e.ID = ID(value)
+		case 1:
+			err := json.Unmarshal(value, &e.Labels)
+			if err != nil {
+				failed = true
+				// return fmt.Errorf("unmarshalling labels: %w", err)
+			}
+		case 2:
+			e.ModTime, err = time.Parse(time.RFC3339, string(value))
+			if err != nil {
+				failed = true
+				// return fmt.Errorf("unmarshalling modtime: %w", err)
+			}
+		case 3:
+			err := json.Unmarshal(value, &e.Deleted)
+			if err != nil {
+				failed = true
+				// return fmt.Errorf("unmarshalling deleted: %w", err)
+			}
+		case 4:
+			e.Content = make([]byte, len(value))
+			n := copy(e.Content, value)
+			if n != len(value) {
+				failed = true
+				fmt.Printf("Failed to copy content %d\n", n)
+			}
+		default:
+			fmt.Printf("Unexpected Input: %v\n", idx)
+			failed = true
+			// return errors.New("Unexpected Input: " + string(key))
+		}
+		return
+	}, paths...)
+
+	if failed {
+		return nil, errors.New("Failed to unmarshal entry")
+	}
+	return e, nil
 }
 
 func decodeManifestArray(r io.Reader) (manifest, error) {
