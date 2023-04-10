@@ -6,7 +6,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"os"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -34,7 +36,20 @@ var ErrNotFound = errors.New("not found")
 const (
 	ContentPrefix                     = "m"
 	autoCompactionContentCountDefault = 16
+	autoCompactionEnvKey              = "KOPIA_MANIFEST_AUTOCOMPACT_COUNT"
 )
+
+// getAutoCompactionContentCount returns the content count after which
+// auto compaction should kick in
+func getAutoCompactionContentCount() int {
+	retVal := autoCompactionContentCountDefault
+	if v := os.Getenv(autoCompactionEnvKey); v != "" {
+		if vint, err := strconv.Atoi(v); err == nil {
+			retVal = vint
+		}
+	}
+	return retVal
+}
 
 // TypeLabelKey is the label key for manifest type.
 const TypeLabelKey = "type"
