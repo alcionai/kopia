@@ -18,10 +18,22 @@ type minioProvider struct {
 	creds *awscreds.Credentials
 }
 
-func assumeRoleCredentials(roleARN, roleSessionName string, tags map[string]string) (credentials.Provider, error) {
+func assumeRoleCredentials(roleARN, roleSessionName string, duration string, tags map[string]string) (credentials.Provider, error) {
+	var (
+		roleDuration time.Duration
+		err          error
+	)
+
+	if duration != "" {
+		roleDuration, err = time.ParseDuration(duration)
+		if err != nil {
+			return &minioProvider{}, errors.Wrap(err, "NewSession")
+		}
+	}
+
 	sess, err := session.NewSession()
 	if err != nil {
-		return &minioProvider{}, errors.Wrap(err, "NewSession")
+		return &minioProvider{}, errors.Wrap(err, "ParseDuration")
 	}
 
 	stsTags := make([]*sts.Tag, 0, len(tags))
@@ -37,7 +49,7 @@ func assumeRoleCredentials(roleARN, roleSessionName string, tags map[string]stri
 		func(p *stscreds.AssumeRoleProvider) {
 			p.Tags = stsTags
 			p.RoleSessionName = roleSessionName
-			p.Duration = 1 * time.Hour
+			p.Duration = roleDuration
 		})
 
 	return &minioProvider{creds: creds}, nil

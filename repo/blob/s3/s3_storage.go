@@ -334,7 +334,6 @@ func New(ctx context.Context, opt *Options, isCreate bool) (blob.Storage, error)
 func newStorage(ctx context.Context, opt *Options) (*s3Storage, error) {
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
-			// assumeRoleCreds,
 			&credentials.Static{
 				Value: credentials.Value{
 					AccessKeyID:     opt.AccessKeyID,
@@ -354,7 +353,7 @@ func newStorage(ctx context.Context, opt *Options) (*s3Storage, error) {
 
 	// If a role was specified, use the assume role credential provider
 	if opt.RoleARN != "" {
-		assumeRoleCreds, err := assumeRoleCredentials(opt.RoleARN, opt.SessionName, opt.Tags)
+		assumeRoleCreds, err := assumeRoleCredentials(opt.RoleARN, opt.SessionName, opt.RoleDuration, opt.Tags)
 		if err != nil {
 			return nil, err
 		}
