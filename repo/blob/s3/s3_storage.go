@@ -330,6 +330,10 @@ func getCustomTransport(opt *Options) (*http.Transport, error) {
 		transport.TLSClientConfig.RootCAs = rootcas
 	}
 
+	if opt.TLSHandshakeTimeout != 0 {
+		transport.TLSHandshakeTimeout = time.Second * time.Duration(opt.TLSHandshakeTimeout)
+	}
+
 	return transport, nil
 }
 

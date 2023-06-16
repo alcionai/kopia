@@ -184,11 +184,12 @@ func TestS3StorageAWS(t *testing.T) {
 
 	// skip the test if AWS creds are not provided
 	options := &Options{
-		Endpoint:        getEnv(testEndpointEnv, awsEndpoint),
-		AccessKeyID:     getEnvOrSkip(t, testAccessKeyIDEnv),
-		SecretAccessKey: getEnvOrSkip(t, testSecretAccessKeyEnv),
-		BucketName:      getEnvOrSkip(t, testBucketEnv),
-		Region:          getEnvOrSkip(t, testRegionEnv),
+		Endpoint:            getEnv(testEndpointEnv, awsEndpoint),
+		AccessKeyID:         getEnvOrSkip(t, testAccessKeyIDEnv),
+		SecretAccessKey:     getEnvOrSkip(t, testSecretAccessKeyEnv),
+		BucketName:          getEnvOrSkip(t, testBucketEnv),
+		Region:              getEnvOrSkip(t, testRegionEnv),
+		TLSHandshakeTimeout: 60,
 	}
 
 	getOrCreateBucket(t, options)
