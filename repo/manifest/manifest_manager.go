@@ -40,14 +40,16 @@ const (
 )
 
 // getAutoCompactionContentCount returns the content count after which
-// auto compaction should kick in
+// auto compaction should kick in.
 func getAutoCompactionContentCount() int {
 	retVal := autoCompactionContentCountDefault
+
 	if v := os.Getenv(autoCompactionEnvKey); v != "" {
 		if vint, err := strconv.Atoi(v); err == nil {
 			retVal = vint
 		}
 	}
+
 	return retVal
 }
 

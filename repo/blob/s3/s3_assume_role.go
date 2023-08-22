@@ -18,7 +18,7 @@ type minioProvider struct {
 	creds *awscreds.Credentials
 }
 
-func assumeRoleCredentials(roleARN, roleSessionName string, duration string, tags map[string]string) (credentials.Provider, error) {
+func assumeRoleCredentials(roleARN, roleSessionName, duration string, tags map[string]string) (credentials.Provider, error) {
 	var (
 		roleDuration time.Duration
 		err          error
