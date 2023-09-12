@@ -1,9 +1,10 @@
 package cli
 
 type commandMaintenance struct {
-	info commandMaintenanceInfo
-	run  commandMaintenanceRun
-	set  commandMaintenanceSet
+	info      commandMaintenanceInfo
+	run       commandMaintenanceRun
+	set       commandMaintenanceSet
+	retDryRun commandRetentionDryRun
 }
 
 func (c *commandMaintenance) setup(svc appServices, parent commandParent) {
@@ -12,4 +13,5 @@ func (c *commandMaintenance) setup(svc appServices, parent commandParent) {
 	c.info.setup(svc, cmd)
 	c.run.setup(svc, cmd)
 	c.set.setup(svc, cmd)
+	c.retDryRun.setup(svc, cmd)
 }

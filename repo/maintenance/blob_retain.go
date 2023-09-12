@@ -45,7 +45,7 @@ func ExtendBlobRetentionTime(ctx context.Context, rep repo.DirectRepositoryWrite
 		return 0, errors.Wrap(err, "blob configuration")
 	}
 
-	if !blobCfg.IsRetentionEnabled() {
+	if !blobCfg.IsRetentionEnabled() && !opt.DryRun {
 		// Blob retention is disabled
 		log(ctx).Info("Object lock retention is disabled.")
 		return 0, nil
