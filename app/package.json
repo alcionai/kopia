@@ -112,7 +112,7 @@
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
-    "@playwright/test": "^1.38.1",
+    "@playwright/test": "^1.39.0",
     "asar": "^3.2.0",
     "concurrently": "^8.2.1",
     "dotenv": "^16.3.1",
