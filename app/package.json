@@ -120,7 +120,7 @@
     "electron-store": "^8.1.0",
     "electron-builder": "^24.6.4",
     "playwright": "^1.37.1",
-    "playwright-core": "^1.35.1"
+    "playwright-core": "^1.39.0"
   },
   "homepage": "./",
   "description": "Fast and secure open source backup.",
