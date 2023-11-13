@@ -25,7 +25,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/mux v1.8.0
-	github.com/hanwen/go-fuse/v2 v2.4.0
+	github.com/hanwen/go-fuse/v2 v2.4.2
 	github.com/hashicorp/cronexpr v1.1.2
 	github.com/klauspost/compress v1.17.0
 	github.com/klauspost/pgzip v1.2.6
