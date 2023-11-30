@@ -48,6 +48,10 @@ func (s *s3Storage) getBlobWithVersion(ctx context.Context, b blob.ID, version s
 	attempt := func() error {
 		opt := minio.GetObjectOptions{VersionID: version}
 
+		for k, v := range s.QueryParams {
+			opt.AddReqParam(k, v)
+		}
+
 		if length > 0 {
 			if err := opt.SetRange(offset, offset+length-1); err != nil {
 				return errors.Wrap(blob.ErrInvalidRange, "unable to set range")
