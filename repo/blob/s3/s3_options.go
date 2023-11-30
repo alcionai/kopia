@@ -23,6 +23,7 @@ type Options struct {
 	SecretAccessKey string            `json:"secretAccessKey" kopia:"sensitive"`
 	SessionToken    string            `json:"sessionToken" kopia:"sensitive"`
 	Tags            map[string]string `json:"tags" kopia:"sensitive"`
+	QueryParams     map[string]string `json:"queryParams" kopia:"sensitive"`
 	RoleARN         string            `json:"roleARN"`
 	SessionName     string            `json:"sessionName"`
 	RoleDuration    string            `json:"duration"`
