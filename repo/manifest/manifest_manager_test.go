@@ -341,6 +341,7 @@ func newContentManagerForTesting(ctx context.Context, t *testing.T, data blobtes
 	return bm
 }
 
+//nolint:unparam
 func newManagerForTesting(ctx context.Context, t *testing.T, data blobtesting.DataMap, options ManagerOptions) *Manager {
 	t.Helper()
 
@@ -401,66 +402,6 @@ func TestManifestAutoCompaction(t *testing.T) {
 	}
 }
 
-func TestManifestConfigureAutoCompaction(t *testing.T) {
-	ctx := testlogging.Context(t)
-	data := blobtesting.DataMap{}
-	item1 := map[string]int{"foo": 1, "bar": 2}
-	labels1 := map[string]string{"type": "item", "color": "red"}
-	compactionCount := 99
-
-	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{AutoCompactionThreshold: compactionCount})
-
-	for i := 0; i < compactionCount-1; i++ {
-		addAndVerify(ctx, t, mgr, labels1, item1)
-		require.NoError(t, mgr.Flush(ctx))
-		require.NoError(t, mgr.b.Flush(ctx))
-	}
-
-	// Should not trigger compaction
-	_, err := mgr.Find(ctx, labels1)
-	require.NoError(t, err)
-
-	foundContents := getManifestContentCount(ctx, t, mgr)
-
-	if got, want := foundContents, compactionCount-1; got != want {
-		t.Errorf("unexpected number of blocks: %v, want %v", got, want)
-	}
-
-	// Add another manifest
-	addAndVerify(ctx, t, mgr, labels1, item1)
-
-	require.NoError(t, mgr.Flush(ctx))
-	require.NoError(t, mgr.b.Flush(ctx))
-
-	// *Should* trigger compaction
-	_, err = mgr.Find(ctx, labels1)
-	require.NoError(t, err)
-
-	foundContents = getManifestContentCount(ctx, t, mgr)
-
-	if got, want := foundContents, 1; got != want {
-		t.Errorf("unexpected number of blocks: %v, want %v", got, want)
-	}
-}
-
-func getManifestContentCount(ctx context.Context, t *testing.T, mgr *Manager) int {
-	t.Helper()
-
-	foundContents := 0
-
-	if err := mgr.b.IterateContents(
-		ctx,
-		content.IterateOptions{Range: index.PrefixRange(ContentPrefix)},
-		func(ci content.Info) error {
-			foundContents++
-			return nil
-		}); err != nil {
-		t.Errorf("unable to list manifest content: %v", err)
-	}
-
-	return foundContents
-}
-
 func TestManifestAutoCompactionWithReadOnly(t *testing.T) {
 	ctx := testlogging.Context(t)
 	data := blobtesting.DataMap{}
@@ -498,7 +439,7 @@ func TestManifestConfigureAutoCompaction(t *testing.T) {
 	item1 := map[string]int{"foo": 1, "bar": 2}
 	labels1 := map[string]string{"type": "item", "color": "red"}
 
-	mgr := newManagerForTesting(ctx, t, data)
+	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
 
 	compactionCount := 99
 
