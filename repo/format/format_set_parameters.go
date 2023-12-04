@@ -47,6 +47,11 @@ func (m *Manager) SetParameters(
 		return errors.Wrap(err, "unable to write format blob")
 	}
 
+	// Force a cache refresh the next time we try to get parameters. If we don't
+	// do this then the Provider stored in m.current may not be updated when the
+	// next call to m.MutableParameters() (or similar) are called, thus returning
+	// stale params.
+	m.validUntil = m.timeNow()
 	m.cache.Remove(ctx, []blob.ID{KopiaRepositoryBlobID, KopiaBlobCfgBlobID})
 
 	return nil
