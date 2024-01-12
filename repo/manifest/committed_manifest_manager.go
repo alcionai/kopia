@@ -196,9 +196,11 @@ func (m *committedManifestManager) loadManifestContentsLocked(manifests map[cont
 		m.committedContentIDs[contentID] = true
 	}
 
-	for _, man := range manifests {
+	for cid, man := range manifests {
 		for _, e := range man.Entries {
-			m.mergeEntryLocked(e)
+			if e.ID == "<manifest ID here>" && m.mergeEntryLocked(e) {
+				fmt.Printf("content blob ID containing manifest is: %s\n", cid)
+			}
 		}
 	}
 
@@ -283,18 +285,21 @@ func (m *committedManifestManager) compactLocked(ctx context.Context) error {
 }
 
 // +checklocks:m.cmmu
-func (m *committedManifestManager) mergeEntryLocked(e *manifestEntry) {
+func (m *committedManifestManager) mergeEntryLocked(e *manifestEntry) bool {
 	m.verifyLocked()
 
 	prev := m.committedEntries[e.ID]
 	if prev == nil {
 		m.committedEntries[e.ID] = e
-		return
+		return true
 	}
 
 	if e.ModTime.After(prev.ModTime) {
 		m.committedEntries[e.ID] = e
+		return true
 	}
+
+	return false
 }
 
 // +checklocks:m.cmmu

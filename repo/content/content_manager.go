@@ -850,11 +850,13 @@ func (bm *WriteManager) GetContent(ctx context.Context, contentID ID) (v []byte,
 	var tmp gather.WriteBuffer
 	defer tmp.Close()
 
-	_, err = bm.getContentDataAndInfo(ctx, contentID, &tmp)
+	info, err := bm.getContentDataAndInfo(ctx, contentID, &tmp)
 	if err != nil {
 		bm.log.Debugf("getContentInfoReadLocked(%v) error %v", contentID, err)
 		return nil, err
 	}
+
+	fmt.Printf("blob ID: %s\n", info.PackBlobID)
 
 	return tmp.ToByteSlice(), nil
 }
