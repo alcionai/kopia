@@ -198,7 +198,7 @@ func (m *committedManifestManager) loadManifestContentsLocked(manifests map[cont
 
 	for cid, man := range manifests {
 		for _, e := range man.Entries {
-			if e.ID == "<manifest ID here>" && m.mergeEntryLocked(e) {
+			if m.mergeEntryLocked(e) && e.ID == "<manifest ID here>" {
 				fmt.Printf("content blob ID containing manifest is: %s\n", cid)
 			}
 		}
