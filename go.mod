@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/cronexpr v1.1.2
 	github.com/klauspost/compress v1.17.4
 	github.com/klauspost/pgzip v1.2.6
-	github.com/klauspost/reedsolomon v1.11.8
+	github.com/klauspost/reedsolomon v1.12.1
 	github.com/kopia/htmluibuild v0.0.1-0.20231019063300-75c2a788c7d0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-colorable v0.1.13
@@ -107,7 +107,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
+	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-ieproxy v0.0.1 // indirect
