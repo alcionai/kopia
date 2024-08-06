@@ -364,7 +364,7 @@ func NewManager(ctx context.Context, b contentManager, options ManagerOptions, m
 		committed: newCommittedManager(
 			b,
 			autoCompactionThreshold,
-			options.FormatVersion,
+			1,
 		),
 	}
 
