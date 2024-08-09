@@ -411,7 +411,7 @@ func TestManifestAutoCompactionWithReadOnly(t *testing.T) {
 	mgr, err := NewManager(ctx, bm, ManagerOptions{}, nil)
 	require.NoError(t, err, "getting initial manifest manager")
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		item1 := map[string]int{"foo": 1, "bar": 2}
 		labels1 := map[string]string{"type": "item", "color": "red"}
 
@@ -429,8 +429,9 @@ func TestManifestAutoCompactionWithReadOnly(t *testing.T) {
 	mgr, err = NewManager(ctx, bm, ManagerOptions{}, nil)
 	require.NoError(t, err, "getting other instance of manifest manager")
 
-	_, err = mgr.Find(ctx, map[string]string{"color": "red"})
-	assert.NoError(t, err, "forcing reload of manifest manager")
+	entries, err := mgr.Find(ctx, map[string]string{"color": "red"})
+	require.NoError(t, err, "forcing reload of manifest manager")
+	assert.Len(t, entries, 100)
 }
 
 func TestManifestConfigureAutoCompaction(t *testing.T) {
