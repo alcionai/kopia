@@ -3,10 +3,12 @@ package manifest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -313,8 +315,8 @@ type contentManagerOpts struct {
 	readOnly bool
 }
 
-func newContentManagerForTesting(ctx context.Context, t *testing.T, data blobtesting.DataMap, opts contentManagerOpts) contentManager {
-	t.Helper()
+func newContentManagerForTesting(ctx context.Context, tb testing.TB, data blobtesting.DataMap, opts contentManagerOpts) contentManager {
+	tb.Helper()
 
 	st := blobtesting.NewMapStorage(data, nil, nil)
 
@@ -331,12 +333,12 @@ func newContentManagerForTesting(ctx context.Context, t *testing.T, data blobtes
 		},
 	}, nil)
 
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
 	bm, err := content.NewManagerForTesting(ctx, st, fop, nil, nil)
-	require.NoError(t, err)
+	require.NoError(tb, err)
 
-	t.Cleanup(func() { bm.CloseShared(ctx) })
+	tb.Cleanup(func() { bm.CloseShared(ctx) })
 
 	return bm
 }
@@ -429,8 +431,9 @@ func TestManifestAutoCompactionWithReadOnly(t *testing.T) {
 	mgr, err = NewManager(ctx, bm, ManagerOptions{}, nil)
 	require.NoError(t, err, "getting other instance of manifest manager")
 
-	_, err = mgr.Find(ctx, map[string]string{"color": "red"})
-	assert.NoError(t, err, "forcing reload of manifest manager")
+	entries, err := mgr.Find(ctx, map[string]string{"color": "red"})
+	require.NoError(t, err, "forcing reload of manifest manager")
+	assert.Len(t, entries, 100)
 }
 
 func TestManifestConfigureAutoCompaction(t *testing.T) {
@@ -478,8 +481,8 @@ func TestManifestConfigureAutoCompaction(t *testing.T) {
 	}
 }
 
-func getManifestContentCount(ctx context.Context, t *testing.T, mgr *Manager) int {
-	t.Helper()
+func getManifestContentCount(ctx context.Context, tb testing.TB, mgr *Manager) int {
+	tb.Helper()
 
 	foundContents := 0
 
@@ -490,8 +493,110 @@ func getManifestContentCount(ctx context.Context, t *testing.T, mgr *Manager) in
 			foundContents++
 			return nil
 		}); err != nil {
-		t.Errorf("unable to list manifest content: %v", err)
+		tb.Errorf("unable to list manifest content: %v", err)
 	}
 
 	return foundContents
+}
+
+// BenchmarkConcurrentCompactionLoading benchmarks the runtime of loading
+// multiple content pieces containing manifests that are all duplicates of each
+// other. Situations like this can arise when clients concurrently compact
+// manifests.
+func BenchmarkConcurrentCompactionLoading(b *testing.B) {
+	ctx := testlogging.Context(b)
+	data := blobtesting.DataMap{}
+
+	bm := newContentManagerForTesting(ctx, b, data, contentManagerOpts{})
+
+	// Setup a manifest manager with a bunch of manifests of non-trivial size.
+	mgr, err := NewManager(ctx, bm, ManagerOptions{}, nil)
+	require.NoError(b, err, "getting initial manifest manager")
+
+	// Manifest content will be ~1K when serialized.
+	manifestData := map[string]string{}
+
+	for i := 0; i < 64; i++ {
+		str := fmt.Sprintf("%016d", i)
+		manifestData[str] = str
+	}
+
+	labels := map[string]string{"type": "item", "color": "red"}
+
+	for i := 0; i < 100; i++ {
+		_, err = mgr.Put(ctx, labels, manifestData)
+		require.NoError(b, err, "adding item to manifest manager")
+
+		require.NoError(b, mgr.Flush(ctx))
+		require.NoError(b, mgr.b.Flush(ctx))
+	}
+
+	assert.Equal(
+		b,
+		100,
+		getManifestContentCount(ctx, b, mgr),
+		"expected number of content pieces",
+	)
+
+	// Open several other manifest mangers that will concurrently compact the set
+	// of manifests added above.
+	var (
+		wg sync.WaitGroup
+		c  = make(chan struct{})
+	)
+
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+
+		// Use only asserts below to avoid calling require in goroutines.
+		go func() {
+			defer wg.Done()
+
+			<-c
+
+			compactionMgr, innerErr := NewManager(ctx, bm, ManagerOptions{}, nil)
+			assert.NoError(b, innerErr, "getting compaction instance of manifest manager")
+
+			entries, innerErr := compactionMgr.Find(ctx, map[string]string{"color": "red"})
+			assert.NoError(b, innerErr, "forcing reload of manifest manager")
+			assert.Len(b, entries, 100)
+		}()
+	}
+
+	close(c)
+
+	wg.Wait()
+
+	// If the above compaction attempts failed the benchmark then exit early.
+	if b.Failed() {
+		return
+	}
+
+	// Just log the number of compacted manifests since we can't guarantee they'll
+	// all run compaction due to race conditions.
+	b.Logf(
+		"have %d compacted manifest content pieces",
+		getManifestContentCount(ctx, b, mgr),
+	)
+
+	// Configure things for read-only mode since we don't care about compaction
+	// anymore.
+	bm = newContentManagerForTesting(
+		ctx,
+		b,
+		data,
+		contentManagerOpts{readOnly: true},
+	)
+
+	// Run the actual benchmark with the current setup.
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		mgr, err = NewManager(ctx, bm, ManagerOptions{}, nil)
+		require.NoError(b, err, "getting benchmark instance of manifest manager")
+
+		entries, err := mgr.Find(ctx, map[string]string{"color": "red"})
+		require.NoError(b, err, "forcing reload of manifest manager")
+		assert.Len(b, entries, 100)
+	}
 }
