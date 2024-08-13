@@ -413,7 +413,7 @@ func TestManifestAutoCompactionWithReadOnly(t *testing.T) {
 	mgr, err := NewManager(ctx, bm, ManagerOptions{}, nil)
 	require.NoError(t, err, "getting initial manifest manager")
 
-	for range 100 {
+	for i := 0; i < 100; i++ {
 		item1 := map[string]int{"foo": 1, "bar": 2}
 		labels1 := map[string]string{"type": "item", "color": "red"}
 
@@ -515,14 +515,15 @@ func BenchmarkConcurrentCompactionLoading(b *testing.B) {
 
 	// Manifest content will be ~1K when serialized.
 	manifestData := map[string]string{}
-	for i := range 64 {
+
+	for i := 0; i < 64; i++ {
 		str := fmt.Sprintf("%016d", i)
 		manifestData[str] = str
 	}
 
 	labels := map[string]string{"type": "item", "color": "red"}
 
-	for range 100 {
+	for i := 0; i < 100; i++ {
 		_, err = mgr.Put(ctx, labels, manifestData)
 		require.NoError(b, err, "adding item to manifest manager")
 
@@ -544,7 +545,7 @@ func BenchmarkConcurrentCompactionLoading(b *testing.B) {
 		c  = make(chan struct{})
 	)
 
-	for range 5 {
+	for i := 0; i < 5; i++ {
 		wg.Add(1)
 
 		// Use only asserts below to avoid calling require in goroutines.
@@ -553,11 +554,11 @@ func BenchmarkConcurrentCompactionLoading(b *testing.B) {
 
 			<-c
 
-			mgr, err := NewManager(ctx, bm, ManagerOptions{}, nil)
-			assert.NoError(b, err, "getting compaction instance of manifest manager")
+			compactionMgr, innerErr := NewManager(ctx, bm, ManagerOptions{}, nil)
+			assert.NoError(b, innerErr, "getting compaction instance of manifest manager")
 
-			entries, err := mgr.Find(ctx, map[string]string{"color": "red"})
-			assert.NoError(b, err, "forcing reload of manifest manager")
+			entries, innerErr := compactionMgr.Find(ctx, map[string]string{"color": "red"})
+			assert.NoError(b, innerErr, "forcing reload of manifest manager")
 			assert.Len(b, entries, 100)
 		}()
 	}
@@ -590,7 +591,7 @@ func BenchmarkConcurrentCompactionLoading(b *testing.B) {
 	// Run the actual benchmark with the current setup.
 	b.ResetTimer()
 
-	for range b.N {
+	for i := 0; i < b.N; i++ {
 		mgr, err = NewManager(ctx, bm, ManagerOptions{}, nil)
 		require.NoError(b, err, "getting benchmark instance of manifest manager")
 

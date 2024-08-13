@@ -152,13 +152,13 @@ func (m *committedManifestManager) loadCommittedContentsLocked(ctx context.Conte
 			Parallel: manifestLoadParallelism,
 		}, func(ci content.Info) error {
 			mu.Lock()
-			committedContentIDs[ci.ContentID] = true
+			committedContentIDs[ci.GetContentID()] = true
 			mu.Unlock()
 
 			err := forEachManifestEntry(
 				ctx,
 				m.b,
-				ci.ContentID,
+				ci.GetContentID(),
 				func(e *manifestEntry) bool {
 					mu.Lock()
 					prev := committedEntries[e.ID]
