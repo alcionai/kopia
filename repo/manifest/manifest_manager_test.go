@@ -495,3 +495,71 @@ func getManifestContentCount(ctx context.Context, t *testing.T, mgr *Manager) in
 
 	return foundContents
 }
+
+func TestWriteManyManifests(t *testing.T) {
+	ctx := testlogging.Context(t)
+	data := blobtesting.DataMap{}
+	item1 := map[string]int{"foo": 1, "bar": 2}
+	labels1 := map[string]string{"type": "item", "color": "red"}
+	numManifests := maxManifestsPerContent + 5
+
+	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
+
+	for i := 0; i < numManifests; i++ {
+		addAndVerify(ctx, t, mgr, labels1, item1)
+	}
+
+	require.NoError(t, mgr.Flush(ctx))
+	require.NoError(t, mgr.b.Flush(ctx))
+
+	// Should only have a single content piece since this wasn't compaction.
+	foundContents := getManifestContentCount(ctx, t, mgr)
+	assert.Equal(t, 1, foundContents)
+
+	mans, err := mgr.Find(ctx, map[string]string{"color": "red"})
+	assert.NoError(t, err)
+	assert.Len(t, mans, numManifests)
+}
+
+func TestCompactManyManifests(t *testing.T) {
+	ctx := testlogging.Context(t)
+	data := blobtesting.DataMap{}
+	item1 := map[string]int{"foo": 1, "bar": 2}
+	labels1 := map[string]string{"type": "item", "color": "red"}
+
+	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
+
+	for i := 0; i < maxManifestsPerContent-1; i++ {
+		addAndVerify(ctx, t, mgr, labels1, item1)
+	}
+
+	require.NoError(t, mgr.Flush(ctx))
+	require.NoError(t, mgr.b.Flush(ctx))
+
+	// Should only have a single content piece since this wasn't compaction.
+	foundContents := getManifestContentCount(ctx, t, mgr)
+	assert.Equal(t, 1, foundContents)
+
+	// Add individually so we can tell that compaction deleted the old content
+	// pieces.
+	for i := 0; i < 6; i++ {
+		addAndVerify(ctx, t, mgr, labels1, item1)
+
+		require.NoError(t, mgr.Flush(ctx))
+		require.NoError(t, mgr.b.Flush(ctx))
+	}
+
+	foundContents = getManifestContentCount(ctx, t, mgr)
+	assert.Equal(t, 7, foundContents)
+
+	// Run compaction which should result in multiple content pieces.
+	err := mgr.Compact(ctx)
+	require.NoError(t, err, "compacting manifests")
+
+	foundContents = getManifestContentCount(ctx, t, mgr)
+	assert.Equal(t, 2, foundContents)
+
+	mans, err := mgr.Find(ctx, map[string]string{"color": "red"})
+	assert.NoError(t, err)
+	assert.Len(t, mans, maxManifestsPerContent+5)
+}
