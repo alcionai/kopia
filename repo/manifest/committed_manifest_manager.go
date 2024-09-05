@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"sort"
+	"strconv"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -18,7 +19,10 @@ import (
 	"github.com/kopia/kopia/repo/content/index"
 )
 
-const maxManifestsPerContent = 1000000
+const (
+	defaultMaxManifestsPerContent = 1000000
+	maxManifestsPerContentEnvKey  = "KOPIA_MAX_MANIFESTS_PER_CONTENT_COUNT"
+)
 
 // committedManifestManager manages committed manifest entries stored in 'm' contents.
 type committedManifestManager struct {
@@ -110,6 +114,18 @@ func (m *committedManifestManager) writeContentChunk(
 	return contentID, nil
 }
 
+func getMaxManifestsPerContent() int {
+	retVal := defaultMaxManifestsPerContent
+
+	if v := os.Getenv(maxManifestsPerContentEnvKey); v != "" {
+		if vint, err := strconv.Atoi(v); err == nil {
+			retVal = vint
+		}
+	}
+
+	return retVal
+}
+
 // writeEntriesLocked writes entries in the provided map as manifest contents
 // and removes all entries from the map when complete and returns the set of content IDs written
 // (typically one).
@@ -140,7 +156,12 @@ func (m *committedManifestManager) writeEntriesLocked(
 
 		// Still write all entries out in a single content piece if we're not
 		// compacting things.
-		if !isCompaction || len(man.Entries) < maxManifestsPerContent {
+		//
+		// Even if the result of getMaxManifestsPer content is 0 or negative, we'll
+		// still make progress because this is a less-than check. At worst, if
+		// there's a configuration that asks for a negative or zero manifests per
+		// content piece then we'll write out each manifest individually.
+		if !isCompaction || len(man.Entries) < getMaxManifestsPerContent() {
 			continue
 		}
 
