@@ -501,7 +501,7 @@ func TestWriteManyManifests(t *testing.T) {
 	data := blobtesting.DataMap{}
 	item1 := map[string]int{"foo": 1, "bar": 2}
 	labels1 := map[string]string{"type": "item", "color": "red"}
-	numManifests := maxManifestsPerContent + 5
+	numManifests := defaultMaxManifestsPerContent + 5
 
 	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
 
@@ -522,44 +522,87 @@ func TestWriteManyManifests(t *testing.T) {
 }
 
 func TestCompactManyManifests(t *testing.T) {
-	ctx := testlogging.Context(t)
-	data := blobtesting.DataMap{}
-	item1 := map[string]int{"foo": 1, "bar": 2}
-	labels1 := map[string]string{"type": "item", "color": "red"}
-
-	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
-
-	for i := 0; i < maxManifestsPerContent-1; i++ {
-		addAndVerify(ctx, t, mgr, labels1, item1)
+	table := []struct {
+		name             string
+		envFlag          string
+		initialManifests int
+		otherManifests   int
+		expectContents   int
+	}{
+		{
+			name:             "DefaultValue",
+			envFlag:          "",
+			initialManifests: defaultMaxManifestsPerContent - 1,
+			otherManifests:   6,
+			expectContents:   2,
+		},
+		{
+			name:             "SmallerEnvValue",
+			envFlag:          "100",
+			initialManifests: 99,
+			otherManifests:   6,
+			expectContents:   2,
+		},
+		{
+			name:             "ZeroEnvValue",
+			envFlag:          "0",
+			initialManifests: 3,
+			otherManifests:   3,
+			expectContents:   6,
+		},
+		{
+			name:             "NegativeEnvValue",
+			envFlag:          "-42",
+			initialManifests: 3,
+			otherManifests:   3,
+			expectContents:   6,
+		},
 	}
 
-	require.NoError(t, mgr.Flush(ctx))
-	require.NoError(t, mgr.b.Flush(ctx))
+	for _, test := range table {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := testlogging.Context(t)
+			data := blobtesting.DataMap{}
+			item1 := map[string]int{"foo": 1, "bar": 2}
+			labels1 := map[string]string{"type": "item", "color": "red"}
 
-	// Should only have a single content piece since this wasn't compaction.
-	foundContents := getManifestContentCount(ctx, t, mgr)
-	assert.Equal(t, 1, foundContents)
+			t.Setenv(maxManifestsPerContentEnvKey, test.envFlag)
 
-	// Add individually so we can tell that compaction deleted the old content
-	// pieces.
-	for i := 0; i < 6; i++ {
-		addAndVerify(ctx, t, mgr, labels1, item1)
+			mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
 
-		require.NoError(t, mgr.Flush(ctx))
-		require.NoError(t, mgr.b.Flush(ctx))
+			for i := 0; i < test.initialManifests; i++ {
+				addAndVerify(ctx, t, mgr, labels1, item1)
+			}
+
+			require.NoError(t, mgr.Flush(ctx))
+			require.NoError(t, mgr.b.Flush(ctx))
+
+			// Should only have a single content piece since this wasn't compaction.
+			foundContents := getManifestContentCount(ctx, t, mgr)
+			assert.Equal(t, 1, foundContents)
+
+			// Add individually so we can tell that compaction deleted the old content
+			// pieces.
+			for i := 0; i < test.otherManifests; i++ {
+				addAndVerify(ctx, t, mgr, labels1, item1)
+
+				require.NoError(t, mgr.Flush(ctx))
+				require.NoError(t, mgr.b.Flush(ctx))
+			}
+
+			foundContents = getManifestContentCount(ctx, t, mgr)
+			assert.Equal(t, test.otherManifests+1, foundContents)
+
+			// Run compaction which should result in multiple content pieces.
+			err := mgr.Compact(ctx)
+			require.NoError(t, err, "compacting manifests")
+
+			foundContents = getManifestContentCount(ctx, t, mgr)
+			assert.Equal(t, test.expectContents, foundContents)
+
+			mans, err := mgr.Find(ctx, map[string]string{"color": "red"})
+			assert.NoError(t, err)
+			assert.Len(t, mans, test.initialManifests+test.otherManifests)
+		})
 	}
-
-	foundContents = getManifestContentCount(ctx, t, mgr)
-	assert.Equal(t, 7, foundContents)
-
-	// Run compaction which should result in multiple content pieces.
-	err := mgr.Compact(ctx)
-	require.NoError(t, err, "compacting manifests")
-
-	foundContents = getManifestContentCount(ctx, t, mgr)
-	assert.Equal(t, 2, foundContents)
-
-	mans, err := mgr.Find(ctx, map[string]string{"color": "red"})
-	assert.NoError(t, err)
-	assert.Len(t, mans, maxManifestsPerContent+5)
 }
