@@ -158,11 +158,6 @@ func (m *committedManifestManager) writeEntriesLocked(
 
 		// Still write all entries out in a single content piece if we're not
 		// compacting things.
-		//
-		// Even if the result of getMaxManifestsPer content is 0 or negative, we'll
-		// still make progress because this is a less-than check. At worst, if
-		// there's a configuration that asks for a negative or zero manifests per
-		// content piece then we'll write out each manifest individually.
 		if !isCompaction ||
 			maxPerContent <= 0 ||
 			int64(len(man.Entries)) < maxPerContent {
