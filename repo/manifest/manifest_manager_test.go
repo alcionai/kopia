@@ -557,6 +557,13 @@ func TestCompactManyManifests(t *testing.T) {
 			otherManifests:   3,
 			expectContents:   6,
 		},
+		{
+			name:             "EnvLargerThanNumManifests",
+			envFlag:          "500",
+			initialManifests: 3,
+			otherManifests:   3,
+			expectContents:   1,
+		},
 	}
 
 	for _, test := range table {
