@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	defaultMaxManifestsPerContent = 1000000
+	defaultMaxManifestsPerContent = 100000
 	maxManifestsPerContentEnvKey  = "KOPIA_MAX_MANIFESTS_PER_CONTENT_COUNT"
 )
 
