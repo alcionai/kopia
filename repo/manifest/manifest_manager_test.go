@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
@@ -591,6 +592,8 @@ func TestCompactManyManifests(t *testing.T) {
 		},
 	}
 
+	t.Setenv(maxManifestsPerContentEnvKey, "")
+
 	for _, test := range table {
 		t.Run(test.name, func(t *testing.T) {
 			ctx := testlogging.Context(t)
@@ -599,6 +602,10 @@ func TestCompactManyManifests(t *testing.T) {
 			labels1 := map[string]string{"type": "item", "color": "red"}
 
 			t.Setenv(maxManifestsPerContentEnvKey, test.envFlag)
+
+			if test.unsetEnvFlag {
+				os.Unsetenv(maxManifestsPerContentEnvKey)
+			}
 
 			mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
 
