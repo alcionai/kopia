@@ -569,6 +569,20 @@ func TestCompactManyManifests(t *testing.T) {
 			expectContents:   2,
 		},
 		{
+			name:             "ExactlyAtEnvValue",
+			envFlag:          "100",
+			initialManifests: 94,
+			otherManifests:   6,
+			expectContents:   1,
+		},
+		{
+			name:             "ExactlyDoubleEnvValue",
+			envFlag:          "100",
+			initialManifests: 194,
+			otherManifests:   6,
+			expectContents:   2,
+		},
+		{
 			name:             "LessManifestsThanEnvValue",
 			envFlag:          "500",
 			initialManifests: 5,
