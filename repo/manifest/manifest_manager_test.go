@@ -3,6 +3,7 @@ package manifest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"strconv"
@@ -501,7 +502,9 @@ func TestWriteManyManifests(t *testing.T) {
 	data := blobtesting.DataMap{}
 	item1 := map[string]int{"foo": 1, "bar": 2}
 	labels1 := map[string]string{"type": "item", "color": "red"}
-	numManifests := defaultMaxManifestsPerContent + 5
+	numManifests := 105
+
+	t.Setenv(maxManifestsPerContentEnvKey, fmt.Sprintf("%d", numManifests-5))
 
 	mgr := newManagerForTesting(ctx, t, data, ManagerOptions{})
 
@@ -525,43 +528,51 @@ func TestCompactManyManifests(t *testing.T) {
 	table := []struct {
 		name             string
 		envFlag          string
+		unsetEnvFlag     bool
 		initialManifests int
 		otherManifests   int
 		expectContents   int
 	}{
 		{
-			name:             "DefaultValue",
-			envFlag:          "",
-			initialManifests: defaultMaxManifestsPerContent - 1,
-			otherManifests:   6,
-			expectContents:   2,
+			name:             "UnsetFlag",
+			unsetEnvFlag:     true,
+			initialManifests: 5,
+			otherManifests:   5,
+			expectContents:   1,
 		},
 		{
-			name:             "SmallerEnvValue",
+			name:             "EmptyValue",
+			envFlag:          "",
+			initialManifests: 5,
+			otherManifests:   5,
+			expectContents:   1,
+		},
+		{
+			name:             "ZeroEnvValue",
+			envFlag:          "0",
+			initialManifests: 5,
+			otherManifests:   5,
+			expectContents:   1,
+		},
+		{
+			name:             "NegativeEnvValue",
+			envFlag:          "-42",
+			initialManifests: 5,
+			otherManifests:   5,
+			expectContents:   1,
+		},
+		{
+			name:             "MoreManifestsThanEnvValue",
 			envFlag:          "100",
 			initialManifests: 99,
 			otherManifests:   6,
 			expectContents:   2,
 		},
 		{
-			name:             "ZeroEnvValue",
-			envFlag:          "0",
-			initialManifests: 3,
-			otherManifests:   3,
-			expectContents:   6,
-		},
-		{
-			name:             "NegativeEnvValue",
-			envFlag:          "-42",
-			initialManifests: 3,
-			otherManifests:   3,
-			expectContents:   6,
-		},
-		{
-			name:             "EnvLargerThanNumManifests",
+			name:             "LessManifestsThanEnvValue",
 			envFlag:          "500",
-			initialManifests: 3,
-			otherManifests:   3,
+			initialManifests: 5,
+			otherManifests:   5,
 			expectContents:   1,
 		},
 	}
