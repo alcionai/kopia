@@ -1,8 +1,7 @@
 module github.com/kopia/kopia
 
 go 1.22
-
-toolchain go1.22.5
+toolchain go1.23.3
 
 require (
 	cloud.google.com/go/storage v1.43.0
@@ -12,8 +11,8 @@ require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/chmduquesne/rollinghash v4.0.0+incompatible
-	github.com/chromedp/cdproto v0.0.0-20240801214329-3f85d328b335
-	github.com/chromedp/chromedp v0.10.0
+	github.com/chromedp/cdproto v0.0.0-20241022234722-4d5d5faf59fb
+	github.com/chromedp/chromedp v0.11.2
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/dustinkirkland/golang-petname v0.0.0-20191129215211-8e5a1ed0cff0
 	github.com/edsrzf/mmap-go v1.1.0
@@ -61,7 +60,7 @@ require (
 	golang.org/x/net v0.28.0
 	golang.org/x/oauth2 v0.22.0
 	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.24.0
+	golang.org/x/sys v0.26.0
 	golang.org/x/term v0.23.0
 	golang.org/x/text v0.17.0
 	google.golang.org/api v0.194.0
@@ -83,7 +82,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/chromedp/sysutil v1.0.0 // indirect
+	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
