@@ -32,7 +32,7 @@ require (
 	github.com/klauspost/reedsolomon v1.12.3
 	github.com/kopia/htmluibuild v0.0.1-0.20240821004433-fc47a3948dbf
 	github.com/kylelemons/godebug v1.1.0
-	github.com/mattn/go-colorable v0.1.13
+	github.com/mattn/go-colorable v0.1.14
 	github.com/minio/minio-go/v7 v7.0.76
 	github.com/mxk/go-vss v1.2.0
 	github.com/natefinch/atomic v1.0.1
@@ -61,7 +61,7 @@ require (
 	golang.org/x/net v0.28.0
 	golang.org/x/oauth2 v0.22.0
 	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.24.0
+	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.23.0
 	golang.org/x/text v0.17.0
 	google.golang.org/api v0.194.0
