@@ -1,8 +1,6 @@
 module github.com/kopia/kopia
 
-go 1.22
-
-toolchain go1.22.5
+go 1.23
 
 require (
 	cloud.google.com/go/storage v1.43.0
@@ -27,7 +25,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/hanwen/go-fuse/v2 v2.5.1
 	github.com/hashicorp/cronexpr v1.1.2
-	github.com/klauspost/compress v1.17.9
+	github.com/klauspost/compress v1.18.2
 	github.com/klauspost/pgzip v1.2.6
 	github.com/klauspost/reedsolomon v1.12.3
 	github.com/kopia/htmluibuild v0.0.1-0.20240821004433-fc47a3948dbf
