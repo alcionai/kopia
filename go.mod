@@ -1,8 +1,6 @@
 module github.com/kopia/kopia
 
-go 1.22
-
-toolchain go1.22.5
+go 1.23
 
 require (
 	cloud.google.com/go/storage v1.43.0
@@ -29,7 +27,7 @@ require (
 	github.com/hashicorp/cronexpr v1.1.2
 	github.com/klauspost/compress v1.17.9
 	github.com/klauspost/pgzip v1.2.6
-	github.com/klauspost/reedsolomon v1.12.3
+	github.com/klauspost/reedsolomon v1.13.0
 	github.com/kopia/htmluibuild v0.0.1-0.20240821004433-fc47a3948dbf
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mattn/go-colorable v0.1.13
@@ -61,7 +59,7 @@ require (
 	golang.org/x/net v0.28.0
 	golang.org/x/oauth2 v0.22.0
 	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.24.0
+	golang.org/x/sys v0.30.0
 	golang.org/x/term v0.23.0
 	golang.org/x/text v0.17.0
 	google.golang.org/api v0.194.0
@@ -109,7 +107,7 @@ require (
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
+	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
